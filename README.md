@@ -154,7 +154,7 @@ Type                       EX    EX%       EM    EM%
 --------------------------------------------------
   TOTAL                 17/25   68.0%     0/25    0.0%
 
-  Execution Accuracy: 68.0%  — target ≥50.0%  [PASS]
+ *** Execution Accuracy: 68.0%  — target ≥50.0%  [PASS] ***
 
   Report written to docs/eval_report.md
 
