@@ -23,11 +23,15 @@ Do not mention SQL. Write as if talking to a business user."""),
 ])
 
 def detect_chart_type(columns: List[str], rows: list) -> str | None:
-    """Detect if result is chartable — bar or line."""
-    if len(columns) != 2 or len(rows) < 2:
+    """Detect if result is chartable — bar or line.
+
+    Charts the first numeric column (columns[1]) against the label (columns[0]).
+    Works for 2+ columns; extra columns appear in the table but not the chart.
+    """
+    if len(columns) < 2 or len(rows) < 2:
         return None
 
-    # check if second column is numeric
+    # check if second column is numeric (the value we'll plot)
     try:
         float(str(rows[0][columns[1]]).replace(",",""))
         is_numeric = True

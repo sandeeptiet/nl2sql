@@ -33,14 +33,14 @@ class Settings(BaseSettings):
     @property
     def db_url(self) -> str:
         return (
-            f"mysql+pymysql://{self.db_user}:{self.db_password}"
+            f"mysql+mysqlconnector://{self.db_user}:{self.db_password}"
             f"@{self.db_host}:{self.db_port}/{self.db_name}"
         )
 
     @property
     def db_readonly_url(self) -> str:
         return (
-            f"mysql+pymysql://{self.db_readonly_user}:{self.db_readonly_password}"
+            f"mysql+mysqlconnector://{self.db_readonly_user}:{self.db_readonly_password}"
             f"@{self.db_host}:{self.db_port}/{self.db_name}"
         )
 

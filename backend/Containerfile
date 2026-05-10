@@ -1,0 +1,40 @@
+# Build context: project root (nl2sql/)
+# podman build -f backend/Containerfile -t quay.io/QUAY_USERNAME/nl2sql-backend:latest .
+
+# ── Stage 1: builder ────────────────────────────────────────────────────────
+FROM python:3.12-slim AS builder
+
+RUN apt-get update && apt-get install -y --no-install-recommends gcc && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir uv
+
+WORKDIR /app
+
+COPY pyproject.toml uv.lock ./
+ENV VIRTUAL_ENV=/app/.venv
+RUN uv sync --no-dev --frozen
+
+# ── Stage 2: runtime ────────────────────────────────────────────────────────
+FROM python:3.12-slim AS runtime
+
+WORKDIR /app
+
+COPY --from=builder /app/.venv /app/.venv
+
+COPY backend/  ./backend/
+COPY database/ ./database/
+
+RUN mkdir -p /app/data && \
+    chown -R 1001:0 /app && chmod -R g=u /app
+
+USER 1001
+
+WORKDIR /app/backend
+
+ENV PATH="/app/.venv/bin:$PATH" \
+    PYTHONUNBUFFERED=1
+
+EXPOSE 8000
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

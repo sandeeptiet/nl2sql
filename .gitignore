@@ -15,6 +15,9 @@ wheels/
 .env.production
 *.env
 
+# Kubernetes secrets — never commit these
+deployment/k8s/secret.yaml
+
 # FAISS index
 backend/data/faiss.index
 

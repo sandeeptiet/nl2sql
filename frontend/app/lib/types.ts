@@ -13,6 +13,8 @@ export interface QueryResponse {
   latency_ms: number;
   chart_type: "bar" | "line" | null;
   error: string | null;
+  transpiled_sql?: string | null;
+  transpiled_dialect?: string | null;
 }
 
 export interface BotMessage {

@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nl2sql-frontend
+  namespace: nl2sql
+  labels:
+    app: nl2sql-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nl2sql-frontend
+  template:
+    metadata:
+      labels:
+        app: nl2sql-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: quay.io/sandeeptiet/nl2sql-frontend:1.4
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            - name: BACKEND_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: nl2sql-config
+                  key: BACKEND_URL
+            - name: PORT
+              value: "3000"
+            - name: HOSTNAME
+              value: "0.0.0.0"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            failureThreshold: 3

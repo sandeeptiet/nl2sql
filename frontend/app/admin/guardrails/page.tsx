@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Guardrail } from "../../lib/adminTypes";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 const DESCRIPTIONS: Record<string, string> = {
   DROP:     "Permanently removes a table or database",
@@ -50,9 +50,25 @@ export default function GuardrailsPage() {
         <h1 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Guardrails Config</h1>
         <span className="text-xs text-gray-400">{blocked} / {guardrails.length} blocked</span>
       </div>
-      <p className="text-sm text-gray-400 mb-6">
+      <p className="text-sm text-gray-400 mb-4">
         Blocked operations are rejected before the SQL generator runs.
       </p>
+
+      <div className="mb-6 rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
+        <p className="font-medium mb-1">Why is INSERT / UPDATE / DELETE still rejected even when set to “Allowed”?</p>
+        <p className="text-xs leading-relaxed">
+          QueryMind protects your data with <span className="font-semibold">four layers of safety</span>, and this toggle is just one of them:
+        </p>
+        <ol className="mt-2 ml-4 list-decimal text-xs leading-relaxed space-y-0.5">
+          <li><span className="font-semibold">Question Classifier</span> — only data-lookup questions reach the SQL generator.</li>
+          <li><span className="font-semibold">SQL Generator</span> — the AI is instructed to write read-only queries (SELECT) only.</li>
+          <li><span className="font-semibold">SQL Validator</span> — this toggle. Last-mile keyword check on the generated SQL.</li>
+          <li><span className="font-semibold">Database User</span> — the app connects with a read-only login that the database itself rejects writes from.</li>
+        </ol>
+        <p className="text-xs leading-relaxed mt-2">
+          Allowing an operation here only relaxes layer 3. Lookups and reports always work — write operations are intentionally hard to perform from the chat UI.
+        </p>
+      </div>
 
       <div className="space-y-3">
         {guardrails.map((g) => (
