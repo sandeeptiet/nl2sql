@@ -1,4 +1,4 @@
-Steps to execute: -
+Steps to execute in local: -
 cd backend
 sandeepkapoor@Sandeeps-MacBook-Air backend % uv run uvicorn main:app --reload --port 8000
 
@@ -22,6 +22,17 @@ Output: -
 nl2sql Evaluation — 2026-05-06 14:27
 API: http://localhost:8000/api/v1/query
 ========================================================================
+Steps to execute using Openshift:
+![alt text](image-3.png)
+
+![alt text](image-4.png)
+
+![alt text](image-5.png)
+
+
+
+
+
   [S1] ✓      Which products are currently in stock?  (rows=33)
   [S2] ✗      Show all processing orders  (api=100 gold=100)
          Generated: SELECT id, customer_id, total, created_at FROM orders WHERE status = 'processing' LIMIT 100
