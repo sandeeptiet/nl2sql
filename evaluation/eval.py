@@ -16,7 +16,7 @@ import sys
 import json
 import argparse
 import requests
-import mysql.connector
+import pymysql
 import sqlglot
 import sqlglot.diff
 from decimal import Decimal
@@ -195,13 +195,14 @@ TEST_CASES = [
 
 # ── DB connection (read-only) ─────────────────────────────────
 def get_conn():
-    return mysql.connector.connect(
+    return pymysql.connect(
         host=os.getenv("DB_HOST", "localhost"),
         port=int(os.getenv("DB_PORT", "3306")),
         user=os.getenv("DB_READONLY_USER", os.getenv("DB_USER", "")),
         password=os.getenv("DB_READONLY_PASSWORD", os.getenv("DB_PASSWORD", "")),
         database=os.getenv("DB_NAME", ""),
         charset="utf8mb4",
+        cursorclass=pymysql.cursors.DictCursor,
     )
 
 
@@ -289,7 +290,7 @@ for tc in TEST_CASES:
         resp = requests.post(
             API_URL,
             json={"question": tc["question"], "chat_history": []},
-            timeout=90,
+            timeout=30,
         )
         resp.raise_for_status()
         api_data = resp.json()
@@ -304,12 +305,9 @@ for tc in TEST_CASES:
 
     # 2. Execute golden SQL
     try:
-        cur = db.cursor(dictionary=True)
-        try:
+        with db.cursor() as cur:
             cur.execute(tc["golden_sql"])
             golden_rows = list(cur.fetchall())
-        finally:
-            cur.close()
     except Exception as e:
         print(f"  [{qid}] Golden SQL error: {e}")
         results.append({"id": qid, "query_type": qtype, "question": tc["question"],

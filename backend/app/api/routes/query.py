@@ -1,9 +1,8 @@
-import sqlglot
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.schemas import QueryRequest, QueryResponse, QueryType
-from app.models.db_models import QueryLog, ModelConfig
+from app.models.db_models import QueryLog
 from app.pipeline.classifier import classify_query
 from app.pipeline.schema_linker import link_schema
 from app.pipeline.retriever import retrieve_examples
@@ -13,18 +12,6 @@ from app.pipeline.executor import execute_sql
 from app.pipeline.formatter import format_result
 
 router = APIRouter()
-
-# Map admin-UI dialect labels → sqlglot's dialect names.
-# sqlglot uses "postgres" (not "postgresql") and "tsql" (not "mssql").
-_SQLGLOT_DIALECT = {
-    "postgresql": "postgres",
-    "postgres":   "postgres",
-    "sqlite":     "sqlite",
-    "mssql":      "tsql",
-    "tsql":       "tsql",
-    "snowflake":  "snowflake",
-    "bigquery":   "bigquery",
-}
 
 @router.post("/query", response_model=QueryResponse)
 async def run_query(request: QueryRequest, db: Session = Depends(get_db)):
@@ -80,28 +67,6 @@ async def run_query(request: QueryRequest, db: Session = Depends(get_db)):
     # Step 8 — format
     formatter_out = format_result(request.question, executor_out)
 
-    # Step 8b — multi-dialect display: if admin selected a non-mysql dialect,
-    # transpile the validated SQL via sqlglot for side-by-side display.
-    transpiled_sql       = None
-    transpiled_dialect   = None
-    config = db.query(ModelConfig).first()
-    ui_dialect    = (config.dialect or "").lower() if config else ""
-    sqlglot_name  = _SQLGLOT_DIALECT.get(ui_dialect)
-    if sqlglot_name and sqlglot_name != "mysql" and validator_out.sanitized_sql:
-        try:
-            transpiled = sqlglot.transpile(
-                validator_out.sanitized_sql,
-                read="mysql",
-                write=sqlglot_name,
-                pretty=False,
-            )
-            transpiled_sql     = transpiled[0] if transpiled else None
-            transpiled_dialect = ui_dialect    # show the UI label, not sqlglot's internal name
-        except Exception:
-            # Transpilation is best-effort — don't fail the whole query
-            transpiled_sql     = None
-            transpiled_dialect = None
-
     # Step 9 — log to DB
     log = QueryLog(
         nl_input    =request.question,
@@ -116,15 +81,13 @@ async def run_query(request: QueryRequest, db: Session = Depends(get_db)):
     db.commit()
 
     return QueryResponse(
-        nl_summary       =formatter_out.nl_summary,
-        table            =formatter_out.table,
-        columns          =formatter_out.columns,
-        sql              =validator_out.sanitized_sql,
-        query_type       =classifier_out.query_type.value,
-        row_count        =executor_out.row_count,
-        latency_ms       =executor_out.latency_ms,
-        chart_type       =formatter_out.chart_type,
-        error            =executor_out.error,
-        transpiled_sql   =transpiled_sql,
-        transpiled_dialect=transpiled_dialect,
+        nl_summary  =formatter_out.nl_summary,
+        table       =formatter_out.table,
+        columns     =formatter_out.columns,
+        sql         =validator_out.sanitized_sql,
+        query_type  =classifier_out.query_type.value,
+        row_count   =executor_out.row_count,
+        latency_ms  =executor_out.latency_ms,
+        chart_type  =formatter_out.chart_type,
+        error       =executor_out.error,
     )

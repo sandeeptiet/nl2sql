@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { ModelConfig } from "../../lib/adminTypes";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 const PROVIDERS = ["anthropic", "openai"];
 const MODELS: Record<string, string[]> = {

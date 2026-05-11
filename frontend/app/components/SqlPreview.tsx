@@ -4,38 +4,17 @@ import { useState } from "react";
 
 interface SqlPreviewProps {
   sql: string;
-  transpiledSql?: string | null;
-  transpiledDialect?: string | null;
 }
 
-export default function SqlPreview({ sql, transpiledSql, transpiledDialect }: SqlPreviewProps) {
+export default function SqlPreview({ sql }: SqlPreviewProps) {
   const [open, setOpen] = useState(false);
-  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
-  function handleCopy(text: string, key: string) {
-    navigator.clipboard.writeText(text).then(() => {
-      setCopiedKey(key);
-      setTimeout(() => setCopiedKey(null), 1500);
+  function handleCopy() {
+    navigator.clipboard.writeText(sql).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
     });
-  }
-
-  function Block({ label, text, copyKey }: { label: string; text: string; copyKey: string }) {
-    return (
-      <div className="relative bg-gray-950 p-3">
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-[10px] uppercase tracking-wider text-gray-500">{label}</span>
-          <button
-            onClick={() => handleCopy(text, copyKey)}
-            className="text-xs text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 px-2 py-0.5 rounded transition-colors"
-          >
-            {copiedKey === copyKey ? "Copied!" : "Copy"}
-          </button>
-        </div>
-        <pre className="text-xs text-green-400 font-mono whitespace-pre-wrap overflow-x-auto">
-          {text}
-        </pre>
-      </div>
-    );
   }
 
   return (
@@ -49,15 +28,16 @@ export default function SqlPreview({ sql, transpiledSql, transpiledDialect }: Sq
       </button>
 
       {open && (
-        <div className="divide-y divide-gray-800">
-          <Block label="MySQL (executed)" text={sql} copyKey="primary" />
-          {transpiledSql && transpiledDialect && (
-            <Block
-              label={`${transpiledDialect.toUpperCase()} (transpiled)`}
-              text={transpiledSql}
-              copyKey="transpiled"
-            />
-          )}
+        <div className="relative bg-gray-950 p-3">
+          <button
+            onClick={handleCopy}
+            className="absolute top-2 right-2 text-xs text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 px-2 py-0.5 rounded transition-colors"
+          >
+            {copied ? "Copied!" : "Copy"}
+          </button>
+          <pre className="text-xs text-green-400 font-mono whitespace-pre-wrap overflow-x-auto pr-14">
+            {sql}
+          </pre>
         </div>
       )}
     </div>

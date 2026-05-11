@@ -17,13 +17,13 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "backend"))
 from dotenv import load_dotenv
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", "backend", ".env.local"))
 
-import mysql.connector
+import pymysql
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--force", action="store_true", help="Delete existing examples and reseed")
 args = parser.parse_args()
 
-conn = mysql.connector.connect(
+conn = pymysql.connect(
     host=os.getenv("DB_HOST", "localhost"),
     port=int(os.getenv("DB_PORT", "3306")),
     user=os.getenv("DB_USER", ""),

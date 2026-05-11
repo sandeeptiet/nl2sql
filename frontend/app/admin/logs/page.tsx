@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { QueryLog } from "../../lib/adminTypes";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 const STATUS_STYLES: Record<string, string> = {
   success: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",

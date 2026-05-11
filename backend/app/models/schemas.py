@@ -83,6 +83,3 @@ class QueryResponse(BaseModel):
     latency_ms: float
     chart_type: Optional[str] = None
     error: Optional[str] = None
-    # Bonus: dual-dialect display via sqlglot.transpile()
-    transpiled_sql: Optional[str] = None
-    transpiled_dialect: Optional[str] = None

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { FewShotExample } from "../../lib/adminTypes";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 const QUERY_TYPES = [
   "SELECT_SIMPLE",
