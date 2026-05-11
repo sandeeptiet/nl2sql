@@ -57,7 +57,11 @@ export function BotBubble({ response }: BotBubbleProps) {
                 chartType={response.chart_type}
               />
             )}
-            <SqlPreview sql={response.sql} />
+            <SqlPreview
+              sql={response.sql}
+              transpiledSql={response.transpiled_sql}
+              transpiledDialect={response.transpiled_dialect}
+            />
           </div>
         )}
       </div>

@@ -1,0 +1,31 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: nl2sql
+
+resources:
+  # Namespace first
+  - namespace.yaml
+
+  # Shared config
+  - secret.yaml
+  - configmap.yaml
+
+  # MySQL
+  - mysql/pvc.yaml
+  - mysql/init-configmap.yaml
+  - mysql/service.yaml
+  - mysql/statefulset.yaml
+
+  # Backend
+  - backend/deployment.yaml
+  - backend/service.yaml
+  - backend/route.yaml
+
+  # Frontend
+  - frontend/deployment.yaml
+  - frontend/service.yaml
+  - frontend/route.yaml
+
+  # One-shot seed job (run manually after MySQL is ready)
+  # - jobs/seed-job.yaml

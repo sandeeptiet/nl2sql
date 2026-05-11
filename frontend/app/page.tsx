@@ -6,7 +6,7 @@ import ChatInput from "./components/ChatInput";
 import SuggestedQueries from "./components/SuggestedQueries";
 import { Message, ChatMessage, QueryResponse } from "./lib/types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 const HISTORY_WINDOW = 6;
 
 export default function Home() {

@@ -1,0 +1,27 @@
+# Never bake local secrets into the image
+backend/.env.local
+backend/.env*
+**/.env.local
+**/.env.docker
+
+# Python cache
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+
+# Node
+frontend/node_modules
+frontend/.next
+
+# Git / IDE
+.git
+.gitignore
+**/.DS_Store
+
+# Docs / evaluation (not needed at runtime)
+docs/
+evaluation/
+
+# K8s manifests
+deployment/

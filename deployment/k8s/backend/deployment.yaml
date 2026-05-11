@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nl2sql-backend
+  namespace: nl2sql
+  labels:
+    app: nl2sql-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nl2sql-backend
+  template:
+    metadata:
+      labels:
+        app: nl2sql-backend
+    spec:
+      containers:
+        - name: backend
+          image: quay.io/sandeeptiet/nl2sql-backend:1.9
+          ports:
+            - containerPort: 8000
+              name: http
+          envFrom:
+            - configMapRef:
+                name: nl2sql-config
+            - secretRef:
+                name: nl2sql-secret
+          env:
+            # Disable numpy SVE/SVE2 dispatch — CRC's Apple Hypervisor advertises
+            # SVE2 but doesn't support variable vector lengths correctly, causing SIGILL.
+            - name: NPY_DISABLE_CPU_FEATURES
+              value: "sve,sve2,sveneon"
+          volumeMounts:
+            - name: faiss-data
+              mountPath: /app/data
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            failureThreshold: 3
+      volumes:
+        - name: faiss-data
+          emptyDir: {}

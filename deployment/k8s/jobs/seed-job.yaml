@@ -1,0 +1,85 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nl2sql-seed
+  namespace: nl2sql
+  labels:
+    app: nl2sql-seed
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        app: nl2sql-seed
+    spec:
+      restartPolicy: OnFailure
+      initContainers:
+        # 1. Wait for MySQL to accept connections
+        - name: wait-for-mysql
+          image: docker.io/mysql:8.4.9
+          command:
+            - /bin/bash
+            - -c
+            - |
+              until mysqladmin ping -h mysql -uroot -p${MYSQL_ROOT_PASSWORD} --silent; do
+                echo "waiting for mysql..."; sleep 5
+              done
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: nl2sql-secret
+                  key: MYSQL_ROOT_PASSWORD
+
+        # 2. Create read-only user (needs mysql client — use bitnami/mysql image)
+        - name: create-readonly-user
+          image: docker.io/mysql:8.4.9
+          command:
+            - /bin/bash
+            - -c
+            - |
+              mysql -h mysql -uroot -p${MYSQL_ROOT_PASSWORD} <<SQL
+                CREATE USER IF NOT EXISTS '${DB_READONLY_USER}'@'%' IDENTIFIED BY '${DB_READONLY_PASSWORD}';
+                GRANT SELECT ON nl2sql.* TO '${DB_READONLY_USER}'@'%';
+                FLUSH PRIVILEGES;
+              SQL
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: nl2sql-secret
+                  key: MYSQL_ROOT_PASSWORD
+            - name: DB_READONLY_USER
+              valueFrom:
+                secretKeyRef:
+                  name: nl2sql-secret
+                  key: DB_READONLY_USER
+            - name: DB_READONLY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: nl2sql-secret
+                  key: DB_READONLY_PASSWORD
+
+      containers:
+        # 3. Seed data using the backend Python image
+        - name: seed
+          image: quay.io/sandeeptiet/nl2sql-backend:1.9
+          command:
+            - /bin/bash
+            - -c
+            - |
+              python /app/database/seed_db.py
+              python /app/database/seed_examples.py --force
+          envFrom:
+            - configMapRef:
+                name: nl2sql-config
+            - secretRef:
+                name: nl2sql-secret
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

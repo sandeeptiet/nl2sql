@@ -9,14 +9,14 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'backend'))
 from dotenv import load_dotenv
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', 'backend', '.env.local'))
 
-import pymysql
+import mysql.connector
 from faker import Faker
 
 fake = Faker('en_IN')
 random.seed(42)
 
 # ── connection ────────────────────────────────────────────────
-conn = pymysql.connect(
+conn = mysql.connector.connect(
     host=os.getenv('DB_HOST', 'localhost'),
     port=int(os.getenv('DB_PORT', '3306')),
     user=os.getenv('DB_USER', ''),
