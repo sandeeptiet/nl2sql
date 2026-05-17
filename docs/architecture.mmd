@@ -1,0 +1,53 @@
+flowchart TB
+    User([User]) -->|Natural Language Question| UI[Next.js Chat UI]
+    UI -->|POST /api/v1/query| API[FastAPI Backend]
+
+    subgraph Understanding["Understanding & Retrieval"]
+        direction TB
+        Classifier[Query Classifier]
+        SchemaLinker[Schema Linker]
+        SchemaMeta[(schema_metadata)]
+        Retriever[BM25 Example Retriever]
+        Examples[(few_shot_examples)]
+        Generator[SQL Generator<br/>Claude Sonnet 4.5]
+
+        Classifier -->|Intent: ANALYTICAL| SchemaLinker
+        SchemaLinker -->|Relevant Meta| SchemaMeta
+        SchemaMeta -->|Column Descriptions| Retriever
+        Retriever -->|Top-3 Q-SQL Pairs| Examples
+        Examples -->|Few-Shot Examples| Generator
+    end
+
+    API --> Classifier
+    Generator -->|Raw SQL| Guardrails
+
+    subgraph Execution["Execution & Safety"]
+        direction TB
+        Guardrails[Security Guardrails]
+        GuardrailsCfg[(guardrails config)]
+        Executor[SQL Executor<br/>read-only engine]
+        Retry{Execution OK?}
+        Formatter[Result Formatter<br/>NL Summary + Chart Hint]
+        Transpiler[sqlglot Transpiler<br/>multi-dialect]
+
+        Guardrails <-->|SELECT-only rules| GuardrailsCfg
+        Guardrails -->|Sanitized SQL| Executor
+        Executor --> Retry
+        Retry -->|Failure: self-heal once| Generator
+        Retry -->|Raw Rows| Formatter
+        Formatter --> Transpiler
+    end
+
+    Executor <-->|Query / Rows| MySQL[(MySQL e-commerce DB)]
+    Transpiler -->|NL Summary + Table| UI
+    UI -->|Answer| User
+
+    QueryLogs[(query_logs)]
+    Formatter -.->|audit trail| QueryLogs
+
+    classDef store fill:#fef3c7,stroke:#d97706,color:#92400e
+    classDef llm fill:#e0e7ff,stroke:#4f46e5,color:#312e81
+    classDef edge fill:#dbeafe,stroke:#1d4ed8,color:#1e3a8a
+    class SchemaMeta,Examples,GuardrailsCfg,QueryLogs,MySQL store
+    class Generator,Formatter llm
+    class UI,API edge
