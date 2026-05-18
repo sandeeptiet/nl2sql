@@ -2,6 +2,11 @@
 
 A production-style Text-to-SQL agent for an e-commerce MySQL database. Users ask questions in plain English; the backend runs them through a 7-stage LLM pipeline and returns a result table, a 1-2 sentence natural-language summary, and an optional chart hint. Containerized and deployable to OpenShift / Kubernetes.
 
+## Target Users -
+    - Business analysts
+    - operations managers
+    - non-technical stakeholders 
+
 ---
 
 ## Table of Contents
